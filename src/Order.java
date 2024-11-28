@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class Order {
+public class Order implements Comparable<Order> {
     private String orderID;
     private String customerID;
     private Map<Item, Integer> items;
@@ -10,18 +10,20 @@ public class Order {
     private String status;
     private boolean isVIP;
     private long timestamp;
-    private Map<String, Customer> customerRepo = Customer.getCostumerRepo();
-    private static Map<String, Pair<Order,String>> CanclledOrders= new HashMap<>();
+    private Map<String, Customer> customerRepo = Customer.getCustomerRepo();
+    private static Map<String, Pair<Order, String>> cancelledOrders = new HashMap<>();
 
-    private static Map<String,Order> allOrders= new HashMap<>();
-    private static PriorityQueue<Order> pendingOrders = new PriorityQueue<>(
-            Comparator.comparing(Order::isVIP).reversed().thenComparing(Order::getTimestamp)
-    );
+    private static Map<String, Order> allOrders = new HashMap<>();
+    private static TreeSet<Order> pendingOrders = new TreeSet<>(Comparator
+            .comparing(Order::isVIP).reversed()
+            .thenComparing(Order::getTimestamp)
+            .thenComparing(Order::getOrderID));
 
-    // Complex map to store order history by customer and order ID
-    public static BiHashMap<String,String,Order> orderHistory = new BiHashMap<String,String,Order>();
+    public static TabularHashMap<String, String, Order> orderHistory = new TabularHashMap<>();
 
-    public Order(String orderID, String customerID, Map<Item, Integer> items, double totalPrice, boolean isVIP) {
+    public Order(String orderID, String customerID, Map<Item, Integer> items, double totalPrice, boolean isVIP,String specialRequests, String deliveryAddress) {
+        this.specialRequests = specialRequests;
+        this.deliveryAddress = deliveryAddress;
         this.orderID = orderID;
         this.customerID = customerID;
         this.items = new HashMap<>(items);
@@ -30,18 +32,20 @@ public class Order {
         this.isVIP = isVIP;
         this.timestamp = System.currentTimeMillis();
 
-        // Add order to customer-specific order history
-        orderHistory.put(customerID,orderID,this);
+        orderHistory.put(customerID, orderID, this);
 
-        // Add order to pending orders queue
         pendingOrders.add(this);
 
-        allOrders.put(orderID,this);
+        allOrders.put(orderID, this);
+        OrderHistoryFileManager.getInstance().saveOrderToHistory(this);
     }
 
-    public static Map<String,Pair<Order,String>> getCanclledOrders(){
-        return CanclledOrders;
+    public static Map<String, Pair<Order, String>> getCancelledOrders() {
+        return cancelledOrders;
     }
+
+
+
 
     public String getOrderID() { return orderID; }
     public String getCustomerID() { return customerID; }
@@ -50,7 +54,8 @@ public class Order {
     public String getStatus() { return status; }
     public boolean isVIP() { return isVIP; }
     public long getTimestamp() { return timestamp; }
-    public static Map<String,Order> getAllOrders() { return allOrders;}
+    public static Map<String, Order> getAllOrders() { return allOrders; }
+
     public void viewSpecialRequests() {
         if (specialRequests != null && !specialRequests.isEmpty()) {
             System.out.println("Special Requests for Order " + orderID + ": " + specialRequests);
@@ -59,33 +64,38 @@ public class Order {
         }
     }
 
-    public static BiHashMap<String,String,Order> getOrderHistory() {
+    public static TabularHashMap<String, String, Order> getOrderHistory() {
         return orderHistory;
     }
 
     public String getSpecialRequests() {
         return specialRequests;
     }
+
     public void setDeliveryAddress(String deliveryAddress) {
         this.deliveryAddress = deliveryAddress;
         System.out.println("Delivery address updated: " + deliveryAddress);
     }
 
     public void cancelOrder() {
-        if (!status.equals("out for delivery") && !status.equals("preparing") && !status.equals("denied") && !status.equals("cancelled")&& !status.equals("refunded")) {
-            if(status.equals("recieved")){
+        if (!status.equals("out for delivery") && !status.equals("preparing") && !status.equals("denied") &&
+                !status.equals("cancelled") && !status.equals("refunded")) {
+            if (status.equals("received")) {
                 this.updateStatus("cancelled");
+
                 processRefund();
+            } else {
+                Scanner scanner = new Scanner(System.in);
+                System.out.println("Enter the reason for cancellation: ");
+                String reason = scanner.nextLine();
+                this.updateStatus("cancelled");
+
+
+                cancelledOrders.put(this.orderID, new Pair<>(this, reason));
             }
-            else {
-            Scanner scanner= new Scanner(System.in);
-            System.out.println("Enter the reason for cancellation: ");
-            String reason= scanner.nextLine();
-            this.updateStatus("cancelled");
-            CanclledOrders.put(this.orderID,new Pair<>(this,reason));}
             System.out.println("Order " + orderID + " has been canceled.");
         } else {
-            System.out.println("Order " + orderID + " cannot be canceled .");
+            System.out.println("Order " + orderID + " cannot be canceled.");
         }
     }
 
@@ -109,13 +119,11 @@ public class Order {
         }
     }
 
-
-
     public static List<Order> getPendingOrders() {
         return new ArrayList<>(pendingOrders);
     }
 
-    public static PriorityQueue<Order> getPendingOrdersQueue() {
+    public static TreeSet<Order> getPendingOrdersSet() {
         return pendingOrders;
     }
 
@@ -123,7 +131,7 @@ public class Order {
         this.status = newStatus;
         System.out.println("Order: " + this.orderID + " status updated to: " + newStatus);
 
-        if (newStatus.equals("completed") ||  newStatus.equals("denied") || newStatus.equals("cancelled")) {
+        if (newStatus.equals("completed") || newStatus.equals("denied") || newStatus.equals("cancelled")) {
             pendingOrders.remove(this);
         }
     }
@@ -133,36 +141,52 @@ public class Order {
             customerRepo.get(customerID).refundMoney(totalPrice);
             SalesReport.getInstance().processRefund(orderID);
             this.updateStatus("refunded");
-            System.out.println("Refund processed for Order " + orderID + ".");
 
+            System.out.println("Refund processed for Order " + orderID + ".");
         } else {
             System.out.println("Order " + orderID + " is not eligible for a refund.");
         }
     }
 
-    public  void reorder(){
-        Customer user= Customer.getCostumerRepo().get(customerID);
-        if(user.deductWallet(totalPrice)){
-            String OrderID2=   "ORD" + (System.currentTimeMillis() % 1000)  + Cart.orderCounter++;
-            boolean isVIP2= user.getCart().getVIP();
-            Order newOrder= new Order(OrderID2,customerID,items,totalPrice,isVIP2);
+    public void reorder() {
+        Customer user = Customer.getCustomerRepo().get(customerID);
+        if (user.deductWallet(totalPrice)) {
+            String newOrderID = "ORD" + (System.currentTimeMillis() % 1000) + Cart.orderCounter++;
+            boolean isVIPStatus = user.getCart().getVIP();
             Scanner scanner = new Scanner(System.in);
             System.out.print("Enter any special requests for your order (or leave blank if none): ");
             String specialRequest = scanner.nextLine();
             System.out.print("Enter delivery address: ");
-            String deliveryAddress = scanner.nextLine();
-            newOrder.setDeliveryAddress(deliveryAddress);
+            Order newOrder = new Order(newOrderID, customerID, items, totalPrice, isVIPStatus, specialRequest, deliveryAddress);
 
-            if (!specialRequest.isEmpty()) {
-                newOrder.addSpecialRequest(specialRequest);
-            }
+
+//            String deliveryAddress = scanner.nextLine();
+//            newOrder.setDeliveryAddress(deliveryAddress);
+//
+//            if (!specialRequest.isEmpty()) {
+//                newOrder.addSpecialRequest(specialRequest);
+//            }
 
             SalesReport.getInstance().addOrder(newOrder);
             System.out.println("Order " + orderID + " has been reordered.");
-        }
-        else{
+        } else {
             System.out.println("Insufficient funds to reorder.");
         }
+    }
 
+    @Override
+    public int compareTo(Order other) {
+        return Comparator.comparing(Order::isVIP).reversed()
+                .thenComparing(Order::getTimestamp)
+                .thenComparing(Order::getOrderID)
+                .compare(this, other);
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

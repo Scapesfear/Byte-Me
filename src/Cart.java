@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 public class Cart {
     private Map<Item, Integer> cartItems; // Map of Items with their quantities
-    private Map<String, Customer> CostumerRepo = Customer.getCostumerRepo();
+    private Map<String, Customer> CostumerRepo = Customer.getCustomerRepo();
     private double totalPrice;
     private String customerID;
     private boolean isVIP;
@@ -37,23 +37,18 @@ public class Cart {
 
 
 
-    public void modifyQuantity(String itemID) {
-        Scanner scanner = new Scanner(System.in);
-
-
-
-        Item item = items.get(itemID); // Retrieve the item from available items
+    public void modifyQuantity(String itemID, int newQuantity)  {
+        Item item = items.get(itemID);
 
         if (item != null && cartItems.containsKey(item)) {
-            System.out.print("Enter the new quantity: ");
-            int newQuantity = scanner.nextInt();
-
-            if (newQuantity <= 0) {
+            if (newQuantity < 0) {
+                System.out.println("Invalid quantity.");
+                return;
+            }
+            if (newQuantity == 0) {
                 cartItems.remove(item);
-                System.out.println(item.getName() + " removed from cart.");
             } else {
                 cartItems.put(item, newQuantity);
-                System.out.println("Updated quantity of " + item.getName() + " to " + newQuantity);
             }
             calculateTotal();
             viewCart();
@@ -110,17 +105,16 @@ public class Cart {
             Scanner scanner = new Scanner(System.in);
             System.out.print("Enter any special requests for your order (or leave blank if none): ");
             String specialRequest = scanner.nextLine();
-
-            String orderID = "ORD" + (System.currentTimeMillis() % 1000)  + orderCounter++;
-            Order newOrder = new Order(orderID, customerID, new HashMap<>(cartItems), totalPrice, isVIP);
-
             System.out.print("Enter delivery address: ");
             String deliveryAddress = scanner.nextLine();
-            newOrder.setDeliveryAddress(deliveryAddress);
+            String orderID = "ORD" + (System.currentTimeMillis() % 1000)  + orderCounter++;
+            Order newOrder = new Order(orderID, customerID, new HashMap<>(cartItems), totalPrice, isVIP, specialRequest, deliveryAddress);
 
-            if (!specialRequest.isEmpty()) {
-                newOrder.addSpecialRequest(specialRequest);
-            }
+
+
+//            if (!specialRequest.isEmpty()) {
+//                newOrder.addSpecialRequest(specialRequest);
+//            }
 
             SalesReport.getInstance().addOrder(newOrder);
 

@@ -1,5 +1,7 @@
+import javax.swing.*;
 import java.util.List;
 import java.util.Scanner;
+import java.util.TreeSet;
 
 public class Admin extends User {
     private static Admin instance;
@@ -99,13 +101,18 @@ public class Admin extends User {
                     break;
 
                 case 6:
-                    List<Order> orders = Order.getPendingOrders();
+                    TreeSet<Order> orders = Order.getPendingOrdersSet();
                     if (orders.isEmpty()) {
                         System.out.println("No pending orders.");
                     } else {
                         for (Order order : orders) {
                             order.viewOrderDetails();
                         }
+                        //Lauch Gui for viewing pending orders
+                        SwingUtilities.invokeLater(() -> {
+                            PendingOrdersGUI gui = new PendingOrdersGUI();
+                            gui.setVisible(true);
+                        });
                     }
                     break;
 
@@ -117,14 +124,15 @@ public class Admin extends User {
                     Order order = Order.getAllOrders().get(orderID);
                     if (order != null) {
                         order.updateStatus(status);
+
                     } else {
                         System.out.println("Order not found.");
                     }
                     break;
 
                 case 8:
-                    for (String orderID1 : Order.getCanclledOrders().keySet()) {
-                        Pair<Order, String> pair = Order.getCanclledOrders().get(orderID1);
+                    for (String orderID1 : Order.getCancelledOrders().keySet()) {
+                        Pair<Order, String> pair = Order.getCancelledOrders().get(orderID1);
                         System.out.println("Order ID: " + orderID1 + " Reason: " + pair.getSecond());
                     }
 

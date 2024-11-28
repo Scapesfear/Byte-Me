@@ -1,5 +1,11 @@
 import java.util.*;
 
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+import javax.swing.*;
+
 public class Menu {
 
     private static Menu instance;
@@ -17,6 +23,11 @@ public class Menu {
 
 
 
+    public static ObservableList<Item> getAvailableMenuItems() {
+
+
+        return FXCollections.observableArrayList(Item.getItemRepository().values());
+    }
 
     public void addNewItem(String itemID, String name, double price, String type) {
         Item.addItem(itemID, name, price, type);
@@ -58,9 +69,10 @@ public class Menu {
     }
 
     private static void updateOrdersContainingItem(Item removedItem) {
-        for (Order order : Order.getPendingOrdersQueue()) {
+        for (Order order : Order.getPendingOrdersSet()) {
             if (order.getItems().containsKey(removedItem)) {
                 order.updateStatus("denied");
+
                 order.processRefund();
                 System.out.println("Order " + order.getOrderID() + " containing removed item "
                         + removedItem.getName() + " has been denied and refunded.");
@@ -80,14 +92,27 @@ public class Menu {
 
 
     public void viewMenu() {
+        // Print menu items from the internal data structure
         System.out.println("Menu:");
         for (Item item : items.values()) {
             if (item.isAvailable()) {
-                System.out.println(item.getItemID() + ": " + item.getName() + " - " + item.getType() + " - $" + item.getPrice());
+                System.out.println("Item ID: " + item.getItemID() + ", Name: " + item.getName()
+                        + ", Type: " + item.getType() + ", Price: $" + item.getPrice());
             }
         }
-    }
 
+        // Print items from the observable list
+        System.out.println("Items in ObservableList:");
+        for (Item item : Menu.getAvailableMenuItems()) {
+            System.out.println("Item ID: " + item.getItemID() + ", Name: " + item.getName());
+        }
+
+        // Launch the GUI
+        SwingUtilities.invokeLater(() -> {
+            MenuGUI gui = new MenuGUI();
+            gui.setVisible(true);
+        });
+    }
 
     public void searchItemByName() {
         Scanner scanner = new Scanner(System.in);

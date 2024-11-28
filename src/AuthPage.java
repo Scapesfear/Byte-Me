@@ -13,27 +13,30 @@ public class AuthPage {
 
 
     public static void authMenu() {
-        System.out.println("Welcome to the Auth Page");
-        System.out.println("1. Sign In");
-        System.out.println("2. Sign Up");
-        System.out.println("3. Exit");
-        System.out.print("Enter your choice: ");
-        int choice = scanner.nextInt();
-        scanner.nextLine();
-        switch (choice) {
-            case 1:
-                loginMenu();  // Switch this to the login menu for signing in
-                break;
-            case 2:
-                signUp();  // Switch this to sign-up functionality
-                break;
-            case 3:
-                System.out.println("Returning to the main menu...");
-                break;
-            default:
-                System.out.println("Invalid option. Try again.");
-                authMenu();
-                break;
+        boolean running = true;
+        while (running) {
+            System.out.println("Welcome to the Auth Page");
+            System.out.println("1. Sign In");
+            System.out.println("2. Sign Up");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+            switch (choice) {
+                case 1:
+                    loginMenu();  // Switch this to the login menu for signing in
+                    break;
+                case 2:
+                    signUp();  // Switch this to sign-up functionality
+                    break;
+                case 3:
+                    System.out.println("Returning to the main menu...");
+                    running = false;
+                    break;
+                default:
+                    System.out.println("Invalid option. Try again.");
+                    break;
+            }
         }
     }
 
@@ -58,13 +61,13 @@ public class AuthPage {
         }
     }
 
-    private static void customerSignUp() {
+    private static void customerSignUp(){
         System.out.print("Enter Customer ID: ");
         String email = scanner.nextLine();
         System.out.print("Enter Customer Password: ");
         String password = scanner.nextLine();
 
-        if (Customer.getCostumerRepo().containsKey(email)) {
+        if (Customer.getCustomerRepo().containsKey(email)) {
             System.out.println("Customer already exists. Please login.");
             loginMenu();
         } else {
@@ -74,7 +77,7 @@ public class AuthPage {
         }
     }
 
-    public static void loginMenu() {
+    public static void loginMenu()  {
         System.out.println("Please enter your user type: 1.Customer 2.Admin  3.Back");
 
         int userType = scanner.nextInt();
@@ -97,13 +100,13 @@ public class AuthPage {
         }
     }
 
-    private static void customerLogin() {
+    private static void customerLogin()  {
         System.out.print("Enter Customer ID: ");
         String email = scanner.nextLine();
         System.out.print("Enter Customer Password: ");
         String password = scanner.nextLine();
 
-        Customer customer = Customer.getCostumerRepo().get(email);
+        Customer customer = CustomerFileManager.getInstance().loadCustomer(email);
         if (customer != null && customer.getPassword().equals(password)) {
             System.out.println("Login successful");
             customer.CustomerOptions();
@@ -126,16 +129,12 @@ public class AuthPage {
         }
 
     }
-    public static void prepareData() {
-        new Customer("customer1", "password1");
-        new Customer("customer2", "password2");
-        new Customer("customer3", "password3");
 
+    public static void prepareData() {
         new Item("1", "pizza", 200.0, "Snacks");
         new Item("2", "burger", 100.0, "Snacks");
         new Item("3", "coffee", 150.0, "beverages");
     }
-
 
 
 

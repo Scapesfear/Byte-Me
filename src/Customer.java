@@ -18,7 +18,11 @@ public class Customer extends User{
         this.Wallet = 5000;
         this.cart = new Cart(userID, false);
         costumerRepository.put(userID, this);
+        CustomerFileManager.getInstance().saveCustomer(this);
+    }
 
+    public static Map<String,Customer> getCustomerRepo() {
+        return costumerRepository;
     }
 
     public void applyForVIP() {
@@ -30,9 +34,6 @@ public class Customer extends User{
         }
     }
 
-    public static Map<String, Customer> getCostumerRepo(){
-        return costumerRepository;
-    }
 
     public boolean deductWallet(double amount) {
         if (this.Wallet >= amount) {
@@ -58,6 +59,7 @@ public class Customer extends User{
         boolean running = true;
         Menu menu = Menu.getInstance();
         while (running) {
+            System.out.println("Wallet Balance: " + Wallet);
             System.out.println("\n--- Menu ---");
             System.out.println("1. View Items");
             System.out.println("2. Search Items");
@@ -99,7 +101,7 @@ public class Customer extends User{
         }
     }
 
-    public void CartOptions(){
+    public void CartOptions()  {
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
         while (running) {
@@ -128,7 +130,9 @@ public class Customer extends User{
                 case 3:
                     System.out.print("Enter the item ID to modify quantity: ");
                     String itemID2 = scanner.nextLine();
-                    cart.modifyQuantity(itemID2);
+                    System.out.print("Enter the new quantity: ");
+                    int newQuantity = scanner.nextInt();
+                    cart.modifyQuantity(itemID2, newQuantity);
                     break;
                 case 4:
                     System.out.print("Enter the item ID to remove from the cart: ");
@@ -158,7 +162,7 @@ public class Customer extends User{
         } else {
             System.out.println("\n--- Order History ---");
             for (Map.Entry<String, Order> entry : orderHistory.entrySet()) {
-                System.out.println("Order ID: " + entry.getKey() + " | Total Price: " + entry.getValue().getTotalPrice());
+                System.out.println("Order ID: " + entry.getKey() + " | Total Price: " + entry.getValue().getTotalPrice()+ " | Order Status: " + entry.getValue().getStatus());
             }
         }
     }
@@ -229,7 +233,7 @@ public class Customer extends User{
         }
     }
 
-    public void CustomerOptions(){
+    public void CustomerOptions()  {
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
         while (running) {
@@ -266,7 +270,10 @@ public class Customer extends User{
     }
 
 
-
-
-
+    public double getWallet() {
+        return Wallet;
+    }
+    public void setWallet(double wallet) {
+        Wallet = wallet;
+    }
 }
