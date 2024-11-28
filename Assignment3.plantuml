@@ -1,0 +1,250 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class Admin {
+  - Admin(): 
+  - instance: Admin
+  + AdminOptions(): void
+  + handleSpecialRequest(): void
+   instance: Admin
+}
+class AuthPage {
+  - AuthPage(): 
+  + authMenu(): void
+  - signUp(): void
+  + loginMenu(): void
+  + prepareData(): void
+  - adminLogin(): void
+  - customerSignUp(): void
+  - customerLogin(): void
+}
+class BiHashMap<K1, K2, V> {
+  + BiHashMap(): 
+  + containsKeys(K1, K2): boolean
+  + get(K1, K2): V
+  + put(K1, K2, V): V
+  + get(K1): Map<K2, V>
+  + clear(): void
+}
+class Cart {
+  + Cart(String, boolean): 
+  - totalPrice: double
+  - isVIP: boolean
+  - clearCart(): void
+  + modifyQuantity(String, int): void
+  + addItem(String, int): void
+  + viewCart(): void
+  + checkout(): void
+  + removeItem(String): void
+  - calculateTotal(): void
+   totalPrice: double
+   isVIP: boolean
+}
+class Customer {
+  + Customer(String, String): 
+  - cart: Cart
+  - Wallet: double
+  - viewOrderDetails(): void
+  + viewOrderHistory(): void
+  + deductWallet(double): boolean
+  + refundMoney(double): void
+  + applyForVIP(): void
+  + CustomerOptions(): void
+  + CartOptions(): void
+  + menuOptions(): void
+  + OrderOptions(): void
+   cart: Cart
+   Wallet: double
+   customerRepo: Map<String, Customer>
+}
+class CustomerFileManager {
+  - CustomerFileManager(): 
+  - instance: CustomerFileManager
+  + loadCustomer(String): Customer
+  - loadCustomers(): void
+  - convertToJson(): String
+  + saveCustomer(Customer): void
+  - parseJsonContent(String): void
+  - saveCustomerDatabase(): void
+   instance: CustomerFileManager
+}
+class Item {
+  + Item(String, String, double, String): 
+  - itemID: String
+  - reviews: HashMap<String, String>
+  - itemRepository: Map<String, Item>
+  - price: double
+  - isAvailable: boolean
+  - name: String
+  - type: String
+  + displayReviews(String): void
+  + addOrUpdateReview(String): void
+  + addItem(String, String, double, String): void
+   name: String
+   type: String
+   price: double
+   isAvailable: boolean
+   reviews: HashMap<String, String>
+   itemRepository: Map<String, Item>
+   itemID: String
+}
+class Main {
+  + Main(): 
+  + main(String[]): void
+}
+class Menu {
+  - Menu(): 
+  - instance: Menu
+  + viewPreviousItems(): void
+  + removeItem(String): void
+  + reactivateItem(String): void
+  - updateOrdersContainingItem(Item): void
+  + filterByCategory(): void
+  + updateItem(String, String, Double, String): void
+  + addNewItem(String, String, double, String): void
+  + searchItemByName(): void
+  + sortItemsByPrice(): void
+  + viewMenu(): void
+   instance: Menu
+   availableMenuItems: ObservableList<Item>
+}
+class MenuGUI {
+  + MenuGUI(): 
+  - loadMenuItems(): void
+  + showMenu(): void
+}
+class NonEditableTableModel {
+  + NonEditableTableModel(): 
+  + isCellEditable(int, int): boolean
+}
+class NonEditableTableModel {
+  + NonEditableTableModel(): 
+  + isCellEditable(int, int): boolean
+}
+class Order {
+  + Order(String, String, Map<Item, Integer>, double, boolean, String, String): 
+  - specialRequests: String
+  - items: Map<Item, Integer>
+  - orderID: String
+  - status: String
+  - timestamp: long
+  - totalPrice: double
+  - isVIP: boolean
+  - cancelledOrders: Map<String, Pair<Order, String>>
+  - deliveryAddress: String
+  + orderHistory: BiHashMap<String, String, Order>
+  - allOrders: Map<String, Order>
+  - customerID: String
+  - pendingOrders: TreeSet<Order>
+  + viewSpecialRequests(): void
+  + addSpecialRequest(String): void
+  + updateStatus(String): void
+  + viewOrderDetails(): void
+  + processRefund(): void
+  + compareTo(Order): int
+  + reorder(): void
+  + cancelOrder(): void
+   customerID: String
+   orderID: String
+   deliveryAddress: String
+   cancelledOrders: Map<String, Pair<Order, String>>
+   pendingOrders: List<Order>
+   timestamp: long
+   allOrders: Map<String, Order>
+   specialRequests: String
+   isVIP: boolean
+   orderHistory: BiHashMap<String, String, Order>
+   status: String
+   totalPrice: double
+   items: Map<Item, Integer>
+   pendingOrdersSet: TreeSet<Order>
+}
+class OrderHistoryFileManager {
+  - OrderHistoryFileManager(): 
+  - instance: OrderHistoryFileManager
+  - loadOrderHistory(): void
+  - parseCustomerOrders(String, String): List<Order>
+  + saveOrderHistory(): void
+  + saveOrderToHistory(Order): void
+  + loadOrderHistoryForCustomer(String): List<Order>
+  - constructOrderJson(Order, int): String
+  - parseOrderHistory(String): void
+   instance: OrderHistoryFileManager
+}
+class Pair<T, U> {
+  + Pair(T, U): 
+  - second: U
+  - first: T
+   second: U
+   first: T
+}
+class PendingOrdersGUI {
+  + PendingOrdersGUI(): 
+  + showPendingOrders(): void
+  - loadPendingOrders(): void
+}
+class SalesReport {
+  - SalesReport(): 
+  - instance: SalesReport
+  + addOrder(Order): void
+  + generateSalesReport(): void
+  + resetSalesData(): void
+  + processRefund(String): void
+   instance: SalesReport
+}
+class TestsTest {
+  + TestsTest(): 
+  ~ createCustomer(): void
+  ~ CartOperationsTest(): void
+  ~ OrderOutofStockTest(): void
+  ~ addItemToCart(): void
+  ~ createItem(): void
+}
+class User {
+  + User(String, String): 
+  - password: String
+  - userRepo: Map<String, User>
+  - userID: String
+  + viewProfile(): void
+  + logout(): void
+  + changePassword(String): void
+  + login(String, String): void
+   password: String
+   userRepo: Map<String, User>
+   userID: String
+}
+
+Admin                   "1" *-[#595959,plain]-> "menu\n1" Menu                    
+Admin                    -[#595959,dashed]->  PendingOrdersGUI        : "«create»"
+Admin                   "1" *-[#595959,plain]-> "salesReport\n1" SalesReport             
+Admin                    -[#000082,plain]-^  User                    
+AuthPage                 -[#595959,dashed]->  Customer                : "«create»"
+AuthPage                 -[#595959,dashed]->  Item                    : "«create»"
+Cart                    "1" *-[#595959,plain]-> "CostumerRepo\n*" Customer                
+Cart                    "1" *-[#595959,plain]-> "cartItems\n*" Item                    
+Cart                     -[#595959,dashed]->  Order                   : "«create»"
+Customer                "1" *-[#595959,plain]-> "cart\n1" Cart                    
+Customer                 -[#595959,dashed]->  Cart                    : "«create»"
+Customer                 -[#000082,plain]-^  User                    
+CustomerFileManager      -[#595959,dashed]->  Customer                : "«create»"
+Menu                    "1" *-[#595959,plain]-> "items\n*" Item                    
+Menu                     -[#595959,dashed]->  MenuGUI                 : "«create»"
+MenuGUI                  -[#595959,dashed]->  NonEditableTableModel   : "«create»"
+NonEditableTableModel    +-[#820000,plain]-  MenuGUI                 
+NonEditableTableModel    +-[#820000,plain]-  PendingOrdersGUI        
+Order                    -[#595959,dashed]->  BiHashMap               : "«create»"
+Order                   "1" *-[#595959,plain]-> "orderHistory\n1" BiHashMap               
+Order                   "1" *-[#595959,plain]-> "customerRepo\n*" Customer                
+Order                   "1" *-[#595959,plain]-> "items\n*" Item                    
+Order                   "1" *-[#595959,plain]-> "cancelledOrders\n*" Pair                    
+Order                    -[#595959,dashed]->  Pair                    : "«create»"
+PendingOrdersGUI         -[#595959,dashed]->  NonEditableTableModel   : "«create»"
+SalesReport             "1" *-[#595959,plain]-> "dailyOrders\n*" Order                   
+TestsTest                -[#595959,dashed]->  Customer                : "«create»"
+TestsTest               "1" *-[#595959,plain]-> "customer\n1" Customer                
+TestsTest                -[#595959,dashed]->  Item                    : "«create»"
+TestsTest               "1" *-[#595959,plain]-> "item1\n1" Item                    
+@enduml

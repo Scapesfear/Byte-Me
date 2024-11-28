@@ -1,0 +1,17 @@
+{
+    "sambot": [
+        {
+            "orderID": "ORD6051",
+            "timestamp": 1732713663621,
+            "totalPrice": 500.0,
+            "isVIP": false,
+            "items": {
+                "2": {
+                    "name": "burger",
+                    "price": 100.0,
+                    "quantity": 5
+                }
+            }
+        }
+    ]
+}

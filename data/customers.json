@@ -1,0 +1,23 @@
+{
+    "    John": {
+        "password": "Doe"
+    },
+    "            customer2": {
+        "password": "password2"
+    },
+    "    student": {
+        "password": "123"
+    },
+    "    customer3": {
+        "password": "password3"
+    },
+    "customer1": {
+        "password": "password1"
+    },
+    "        John": {
+        "password": "Doe"
+    },
+    "sambot": {
+        "password": "sam123"
+    }
+}
